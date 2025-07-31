@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  hardhat:
+    build:
+      context: .
+      dockerfile: Dockerfile.hardhat
+    ports:
+      - "8545:8545"
+    volumes:
+      - ./:/app
+      - /app/node_modules
+    command: npx hardhat node --hostname 0.0.0.0
+    networks:
+      - prediction-network
+
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: prediction
+      POSTGRES_PASSWORD: prediction123
+      POSTGRES_DB: prediction_markets
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - prediction-network
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - prediction-network
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://prediction:prediction123@postgres:5432/prediction_markets
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - postgres
+      - redis
+      - hardhat
+    volumes:
+      - ./:/app
+      - /app/node_modules
+      - /app/.next
+    command: npm run dev
+    networks:
+      - prediction-network
+
+networks:
+  prediction-network:
+    driver: bridge
+
+volumes:
+  postgres_data:

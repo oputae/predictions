@@ -1,0 +1,56 @@
+From: <Saved by Blink>
+Snapshot-Content-Location: http://127.0.0.1:5500/random.html
+Subject: 
+Date: Sun, 20 Jul 2025 16:32:45 -0400
+MIME-Version: 1.0
+Content-Type: multipart/related;
+	type="text/html";
+	boundary="----MultipartBoundary--lps7B9RzHlP2H1j79wNO1OFI9OjKeeHGkiCkyLVXXa----"
+
+
+------MultipartBoundary--lps7B9RzHlP2H1j79wNO1OFI9OjKeeHGkiCkyLVXXa----
+Content-Type: text/html
+Content-ID: <frame-F3F5798600CBE39B94F22DF8A49D96BE@mhtml.blink>
+Content-Transfer-Encoding: quoted-printable
+Content-Location: http://127.0.0.1:5500/random.html
+
+<!DOCTYPE html><html><head><meta http-equiv=3D"Content-Type" content=3D"tex=
+t/html; charset=3DUTF-8"><link rel=3D"stylesheet" type=3D"text/css" href=3D=
+"cid:css-6dc9128c-a944-490c-93ad-d348c43a824d@mhtml.blink" />
+
+
+</head>
+<body>
+  <div class=3D"icon" id=3D"iconDiv">PM</div>
+  <div class=3D"banner" id=3D"bannerDiv">
+    <h1>Crypto Prediction Markets</h1>
+    <p>Bet on BTC &amp; ETH price movements with USDC on Base</p>
+  </div>
+
+  <button>Download Icon</button>
+  <button>Download Banner</button>
+
+ =20
+<!-- Code injected by live-server -->
+
+
+</body></html>
+------MultipartBoundary--lps7B9RzHlP2H1j79wNO1OFI9OjKeeHGkiCkyLVXXa----
+Content-Type: text/css
+Content-Transfer-Encoding: quoted-printable
+Content-Location: cid:css-6dc9128c-a944-490c-93ad-d348c43a824d@mhtml.blink
+
+@charset "utf-8";
+
+.icon { width: 512px; height: 512px; background: rgb(139, 92, 246); display=
+: flex; align-items: center; justify-content: center; font-size: 200px; col=
+or: white; font-family: Arial; font-weight: bold; }
+
+.banner { width: 1200px; height: 630px; background: rgb(17, 24, 39); displa=
+y: flex; flex-direction: column; align-items: center; justify-content: cent=
+er; color: white; font-family: Arial; text-align: center; padding: 60px; }
+
+.banner h1 { font-size: 72px; margin-bottom: 20px; }
+
+.banner p { font-size: 32px; color: rgb(156, 163, 175); }
+------MultipartBoundary--lps7B9RzHlP2H1j79wNO1OFI9OjKeeHGkiCkyLVXXa------

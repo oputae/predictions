@@ -1,0 +1,22 @@
+{
+  "network": "base-sepolia",
+  "chainId": 84532,
+  "deploymentDate": "2024-12-19T00:00:00.000Z",
+  "deployer": "0xd60A61066a20E7E4b3E9EaF689509AdfA75Ef1dd",
+  "contracts": {
+    "predictionMarket": "0x669174fC3ED415eF6aC095428cA96404007b68F0",
+    "usdc": "0x036CbD53842c5426634e7929541eC2318f3dCF7e"
+  },
+  "priceFeeds": {
+    "BTC/USD": "0x07DA0E54543a844a80ABE69c8A12F22B3aA59f9D",
+    "ETH/USD": "0x71041dddad3595F9CEd3DcCFBe3D1F4b0a16Bb70"
+  },
+  "features": {
+    "withdrawForfeited": true,
+    "withdrawFees": true,
+    "feePercentage": "1%",
+    "deadlinePriceResolution": true,
+    "5minuteTolerance": true
+  },
+  "explorerUrl": "https://sepolia.basescan.org"
+} 
