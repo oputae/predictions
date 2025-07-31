@@ -1,7 +1,7 @@
 'use client';
 
 import { Market } from '@/app/lib/types';
-import { MarketCard } from './MarketCard';
+import { MarketCard } from './Marketcard';
 
 interface MarketListProps {
   markets: Market[];
