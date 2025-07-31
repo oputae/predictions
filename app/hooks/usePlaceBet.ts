@@ -18,7 +18,7 @@ export function usePlaceBet() {
   ) => {
     setIsLoading(true);
     try {
-      const amountInUSDC = parseUnits(amount, 6);
+      const amountInUSDC = parseUnits(amount as `${number}`, 6);
       
       // Check allowance
       if (parseFloat(allowance) < parseFloat(amount)) {
