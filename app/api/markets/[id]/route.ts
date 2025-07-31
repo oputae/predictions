@@ -1,7 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createPublicClient, http, formatUnits } from 'viem';
-import { baseSepolia } from 'viem/chains';
-import PredictionMarketABI from '@/app/lib/abis/PredictionMarket.json';
+import PredictionMarketArtifact from '@/app/lib/abis/PredictionMarket.json';
+const PredictionMarketABI = PredictionMarketArtifact.abi;
+
+// Define baseSepolia chain since it's not exported from viem/chains
+const baseSepolia = {
+  id: 84532,
+  name: 'Base Sepolia',
+  network: 'base-sepolia',
+  nativeCurrency: {
+    decimals: 18,
+    name: 'Ether',
+    symbol: 'ETH',
+  },
+  rpcUrls: {
+    default: { http: ['https://sepolia.base.org'] },
+    public: { http: ['https://sepolia.base.org'] },
+  },
+  blockExplorers: {
+    default: { name: 'BaseScan', url: 'https://sepolia.basescan.org' },
+  },
+};
 import { CONTRACT_ADDRESSES } from '@/app/lib/constants';
 
 const client = createPublicClient({
@@ -24,7 +43,7 @@ export async function GET(
       abi: PredictionMarketABI,
       functionName: 'getMarketInfo',
       args: [marketId],
-    });
+    }) as any;
 
     const market = {
       id: marketId,

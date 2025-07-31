@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { validateFrameAction } from '../utils';
 import { encodeFunctionData } from 'viem';
-import PredictionMarketABI from '@/app/lib/abis/PredictionMarket.json';
+import PredictionMarketArtifact from '@/app/lib/abis/PredictionMarket.json';
+const PredictionMarketABI = PredictionMarketArtifact.abi;
 import { CONTRACT_ADDRESSES } from '@/app/lib/constants';
 
 export async function POST(request: NextRequest) {
