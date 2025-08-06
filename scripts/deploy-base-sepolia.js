@@ -1,5 +1,5 @@
 // scripts/deploy-base-sepolia.js
-const { ethers, upgrades, run } = require("hardhat");
+const { ethers, run } = require("hardhat");
 const fs = require("fs");
 const path = require("path");
 

@@ -1,4 +1,5 @@
-const { ethers, upgrades } = require("hardhat");
+// const { ethers, upgrades } = require("hardhat"); // Disabled - not using proxy pattern
+const { ethers } = require("hardhat");
 const fs = require("fs");
 const path = require("path");
 

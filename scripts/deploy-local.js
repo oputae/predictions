@@ -1,4 +1,4 @@
-const { ethers, upgrades } = require("hardhat");
+const { ethers } = require("hardhat");
 const fs = require("fs");
 const path = require("path");
 
@@ -19,19 +19,10 @@ async function main() {
   // Deploy Prediction Market
   console.log("\n2. Deploying Prediction Market...");
   const PredictionMarket = await ethers.getContractFactory("USDCPredictionMarket");
-  const predictionMarket = await upgrades.deployProxy(
-    PredictionMarket,
-    [usdc.address],
-    { 
-      initializer: 'initialize',
-      kind: 'uups'
-    }
-  );
+  const predictionMarket = await PredictionMarket.deploy(usdc.address);
   await predictionMarket.deployed();
   
-  const implementationAddress = await upgrades.erc1967.getImplementationAddress(
-    predictionMarket.address
-  );
+  const implementationAddress = predictionMarket.address;
   
   console.log("✅ Prediction Market deployed!");
   console.log("   Proxy:", predictionMarket.address);
