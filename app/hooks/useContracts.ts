@@ -639,7 +639,7 @@ export function useResolveMarket() {
       }
 
       // Extract price_open from the candle data [timestamp, low, high, open, close, volume]
-      const priceOpen = candles[0][1]; // price_open is at index 1
+      const priceOpen = candles[0][3]; // price_open is at index 3
       
       // Convert price to 8 decimals (same format as target price)
       const priceInDecimals = ethers.utils.parseUnits(priceOpen.toString(), 8);

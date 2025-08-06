@@ -62,7 +62,7 @@ export function ResolvedMarketCard({ market, onResolve }: ResolvedMarketCardProp
     
     setIsResolving(true);
     try {
-      const txHash = await resolveMarket(localMarket.id);
+      const txHash = await resolveMarket(localMarket.id, localMarket.deadline, localMarket.asset);
       setResolveTxHash(txHash);
       
       // Store that we're on the resolved tab before reloading (client-side only)

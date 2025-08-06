@@ -1,6 +1,7 @@
 require("@nomicfoundation/hardhat-toolbox");
-require("@openzeppelin/hardhat-upgrades");
+// require("@openzeppelin/hardhat-upgrades"); // Removed since we're not using proxy pattern
 require("dotenv").config({ path: '.env.local' });
+require("dotenv").config(); // Also load from .env for CI
 
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
@@ -20,13 +21,13 @@ module.exports = {
       chainId: 31337
     },
     baseSepolia: {
-      url: `https://base-sepolia.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`,
+      url: `https://base-sepolia.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY || 'dummy'}`,
       accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
       chainId: 84532,
       gasPrice: 1000000000, // 1 gwei
     },
     base: {
-      url: `https://base-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`,
+      url: `https://base-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY || 'dummy'}`,
       accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
       chainId: 8453,
     }
