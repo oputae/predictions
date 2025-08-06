@@ -91,7 +91,7 @@ contract USDCPredictionMarket is
             "Will ", _asset, " be ", condition, " $", toString(_targetPrice / 1e8), "?"
         ));
         newMarket.asset = _asset;
-        newMarket.targetPrice = _targetPrice * 1e8; // Convert to 8 decimals for Chainlink
+        newMarket.targetPrice = _targetPrice; // Price is already in 8 decimals from frontend
         newMarket.deadline = block.timestamp + _duration;
         
         // Skip price feed call during market creation to avoid cross-chain issues
