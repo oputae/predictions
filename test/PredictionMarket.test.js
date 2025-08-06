@@ -1,5 +1,5 @@
 const { expect } = require("chai");
-const { ethers, upgrades } = require("hardhat");
+const { ethers } = require("hardhat");
 const { time } = require("@nomicfoundation/hardhat-network-helpers");
 
 describe("USDCPredictionMarket", function () {
@@ -40,7 +40,7 @@ describe("USDCPredictionMarket", function () {
     it("Should create a market successfully", async function () {
       const tx = await market.createMarket(
         "BTC",
-        130000,
+        ethers.utils.parseUnits("130000", 8), // Convert to 8 decimals
         3600, // 1 hour
         ethers.utils.parseUnits("10", 6),
         true // isAbove
@@ -51,19 +51,19 @@ describe("USDCPredictionMarket", function () {
       
       expect(event.args.marketId).to.equal(0);
       expect(event.args.asset).to.equal("BTC");
-      expect(event.args.targetPrice).to.equal(130000);
+      expect(event.args.targetPrice).to.equal(ethers.utils.parseUnits("130000", 8));
     });
 
     it("Should reject unsupported assets", async function () {
       await expect(
-        market.createMarket("DOGE", 1, 3600, ethers.utils.parseUnits("10", 6), true)
+        market.createMarket("DOGE", ethers.utils.parseUnits("1", 8), 3600, ethers.utils.parseUnits("10", 6), true)
       ).to.be.revertedWith("Asset not supported");
     });
   });
 
   describe("Betting", function () {
     beforeEach(async function () {
-      await market.createMarket("BTC", 130000, 3600, ethers.utils.parseUnits("10", 6), true);
+      await market.createMarket("BTC", ethers.utils.parseUnits("130000", 8), 3600, ethers.utils.parseUnits("10", 6), true);
     });
 
     it("Should place a YES bet", async function () {
