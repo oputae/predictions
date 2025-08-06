@@ -133,14 +133,9 @@ contract USDCPredictionMarket is
         
         AggregatorV3Interface priceFeed = AggregatorV3Interface(priceFeeds[market.asset]);
         
-        // Try to get the price at the deadline using the stored round ID
+        // Always find the closest round to the deadline to avoid cross-chain issues
         (uint80 roundId, int256 price, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound) = 
-            priceFeed.getRoundData(uint80(market.deadlineRoundId));
-        
-        // If the round doesn't exist or is too far from deadline, find the closest round
-        if (updatedAt == 0 || abs(int256(updatedAt) - int256(market.deadline)) > 300) {
-            (roundId, price, startedAt, updatedAt, answeredInRound) = findClosestRound(priceFeed, market.deadline);
-        }
+            findClosestRound(priceFeed, market.deadline);
         
         require(updatedAt > 0, "Invalid price data");
         require(price > 0, "Invalid price");
@@ -166,14 +161,17 @@ contract USDCPredictionMarket is
         try priceFeed.latestRoundData() returns (uint80 roundIdResult, int256, uint256, uint256, uint80) {
             currentRoundId = roundIdResult;
         } catch {
-            // If price feed fails, use a default round ID
-            currentRoundId = 1;
+            // If price feed fails, try to find any valid round
+            currentRoundId = 1000; // Start from a reasonable round ID
         }
         
         uint256 bestRoundId = currentRoundId;
         uint256 bestTimeDiff = type(uint256).max;
         
-        for (uint80 i = currentRoundId; i > 0 && i > currentRoundId - 1000; i--) {
+        // Search backwards from current round, but limit to avoid infinite loops
+        uint256 searchLimit = currentRoundId > 1000 ? currentRoundId - 1000 : 1;
+        
+        for (uint80 i = currentRoundId; i >= searchLimit; i--) {
             try priceFeed.getRoundData(i) returns (uint80, int256, uint256, uint256, uint80) {
                 (,,,uint256 roundUpdatedAt,) = priceFeed.getRoundData(i);
                 if (roundUpdatedAt > 0) {
@@ -189,7 +187,17 @@ contract USDCPredictionMarket is
             }
         }
         
-        return priceFeed.getRoundData(uint80(bestRoundId));
+        // If we found a valid round, return it
+        if (bestTimeDiff != type(uint256).max) {
+            return priceFeed.getRoundData(uint80(bestRoundId));
+        }
+        
+        // Fallback: try to get the latest round data
+        try priceFeed.latestRoundData() returns (uint80, int256, uint256, uint256, uint80) {
+            return priceFeed.latestRoundData();
+        } catch {
+            revert("No valid price data available");
+        }
     }
     
     function abs(int256 x) internal pure returns (uint256) {
@@ -281,7 +289,7 @@ contract USDCPredictionMarket is
         return (
             market.question,
             market.asset,
-            market.targetPrice / 1e8, // Convert back from Chainlink format
+            market.targetPrice, // Price is already in 8 decimals
             market.deadline,
             market.yesPool,
             market.noPool,
