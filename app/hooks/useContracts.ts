@@ -374,7 +374,6 @@ export function useCreateMarket() {
 export function usePlaceBet() {
   const { predictionMarket } = getContractAddresses();
   const { toast } = useToast();
-  const { allowance } = useUSDC();
   const { address } = useAccount();
 
   const placeBet = async (
@@ -387,17 +386,26 @@ export function usePlaceBet() {
     }
 
     try {
-      // Check allowance
-      if (parseFloat(allowance) < parseFloat(amount)) {
-        throw new Error('Please approve USDC spending first');
-      }
-
       // Use ethers.js directly for contract interaction
       const { ethers } = await import('ethers');
       
       // Get provider and signer
       const provider = new ethers.providers.Web3Provider((window.ethereum as any) || {});
       const signer = provider.getSigner();
+      
+      // Check allowance directly from contract to avoid stale data
+      const usdcContract = new ethers.Contract(
+        getContractAddresses().usdc,
+        USDCABI,
+        provider
+      );
+      
+      const currentAllowance = await usdcContract.allowance(address, predictionMarket);
+      const allowanceInUSDC = ethers.utils.formatUnits(currentAllowance, 6);
+      
+      if (parseFloat(allowanceInUSDC) < parseFloat(amount)) {
+        throw new Error('Please approve USDC spending first');
+      }
       
       // Create contract instance
       const contract = new ethers.Contract(
