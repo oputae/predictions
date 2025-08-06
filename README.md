@@ -121,7 +121,7 @@ NEXT_PUBLIC_NETWORK=base-sepolia
 NEXT_PUBLIC_CHAIN_ID=84532
 
 # Contract Addresses (current deployment)
-NEXT_PUBLIC_PREDICTION_MARKET_ADDRESS=0x93f0C0a18478Be1370224481155D21D974C95234
+NEXT_PUBLIC_PREDICTION_MARKET_ADDRESS=0x3bfD4012d81E040D25B06caA89b2Eabf14507F71
 NEXT_PUBLIC_USDC_ADDRESS=0x036CbD53842c5426634e7929541eC2318f3dCF7e
 
 # API Keys (required)
@@ -264,11 +264,11 @@ npm run dev
 
 ### Current Deployment Status
 
-**Active Contract**: `0x93f0C0a18478Be1370224481155D21D974C95234` (Base Sepolia)
+**Active Contract**: `0x3bfD4012d81E040D25B06caA89b2Eabf14507F71` (Base Sepolia)
 
 **Key Features**:
-- ✅ **Deadline-based Resolution**: Markets resolve using Chainlink price at deadline (prevents manipulation)
-- ✅ **5-Minute Tolerance**: Strict accuracy requirements for price data
+- ✅ **Deadline-based Resolution**: Markets resolve using Coinbase API historical price data at exact deadline (prevents manipulation)
+- ✅ **Precise Price Data**: Uses exact 1-minute candle data from Coinbase for accurate resolution
 - ✅ **Base Mainnet Price Feeds**: Real CBBTC/USD and ETH/USD prices (no mock data)
 - ✅ **Fair One-Sided Logic**: Users get their stake back if no opposing bets
 - ✅ **Fee Withdrawal**: Admin can withdraw accumulated fees
@@ -277,10 +277,11 @@ npm run dev
 - ✅ **Smart USDC Approval**: Skips approval if user already has sufficient allowance
 - ✅ **Production Ready**: All components updated and tested
 - ✅ **Price Conversion Fixed**: Frontend correctly converts prices to/from 8 decimals for Chainlink compatibility
+- ✅ **Coinbase API Resolution**: Markets resolve using historical price data from Coinbase API for precise deadline-based pricing
 
 **Price Feeds**:
-- **CBBTC/USD**: `0x07DA0E54543a844a80ABE69c8A12F22B3aA59f9D` (Base Mainnet)
-- **ETH/USD**: `0x71041dddad3595F9CEd3DcCFBe3D1F4b0a16Bb70` (Base Mainnet)
+- **Current Prices**: Chainlink feeds on Base Mainnet for real-time market display
+- **Resolution Prices**: Coinbase API historical data for precise deadline-based resolution
 
 **Legacy Contract**: `0x33900910C893E5bc9eEab1B13e21fC45a9A377f7`
 - Contains resolved markets from previous deployment
@@ -342,6 +343,22 @@ npx hardhat test test/PredictionMarket.test.js
    - Connect wallet
    - Sign in with Farcaster
    - Create market with test parameters
+
+### Market Resolution Process
+
+**New Coinbase API Integration**:
+- When a market expires, users can click "Resolve Market"
+- Frontend fetches historical price data from Coinbase API for the exact deadline timestamp
+- Uses 1-minute candle data: `[timestamp, low, high, open, close, volume]`
+- Extracts `price_open` for precise deadline-based resolution
+- Calls `resolveMarketWithPrice()` with the historical price
+- No more cross-chain price feed issues or gas estimation problems
+
+**Benefits**:
+- ✅ **Exact Precision**: Uses price at exact deadline timestamp
+- ✅ **Reliable Data**: Coinbase API is highly reliable and free
+- ✅ **No Gas Issues**: Eliminates complex price feed logic
+- ✅ **Transparent**: Users can verify the exact price used
 
 2. **Place Bets**
    - Approve USDC (or skip if already approved)

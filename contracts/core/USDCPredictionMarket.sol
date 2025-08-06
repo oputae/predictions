@@ -15,7 +15,7 @@ contract USDCPredictionMarket is
         string asset;
         uint256 targetPrice;
         uint256 deadline;
-        uint256 deadlineRoundId; // Store the round ID that should correspond to deadline
+
         uint256 yesPool;
         uint256 noPool;
         bool resolved;
@@ -94,9 +94,7 @@ contract USDCPredictionMarket is
         newMarket.targetPrice = _targetPrice; // Price is already in 8 decimals from frontend
         newMarket.deadline = block.timestamp + _duration;
         
-        // Skip price feed call during market creation to avoid cross-chain issues
-        // We'll handle price feed calls only during market resolution
-        newMarket.deadlineRoundId = 1; // Default value, will be updated during resolution
+        // Price resolution will be handled via external API calls
         
         newMarket.creator = msg.sender;
         newMarket.minBet = _minBet;
@@ -126,78 +124,23 @@ contract USDCPredictionMarket is
         emit BetPlaced(_marketId, msg.sender, _isYes, _amount);
     }
 
-    function resolveMarket(uint256 _marketId) external {
+    function resolveMarketWithPrice(uint256 _marketId, uint256 _price) external {
         Market storage market = markets[_marketId];
         require(block.timestamp >= market.deadline, "Market not expired");
         require(!market.resolved, "Already resolved");
-        
-        AggregatorV3Interface priceFeed = AggregatorV3Interface(priceFeeds[market.asset]);
-        
-        // Always find the closest round to the deadline to avoid cross-chain issues
-        (uint80 roundId, int256 price, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound) = 
-            findClosestRound(priceFeed, market.deadline);
-        
-        require(updatedAt > 0, "Invalid price data");
-        require(price > 0, "Invalid price");
-        require(abs(int256(updatedAt) - int256(market.deadline)) <= 300, "Price too far from deadline");
+        require(_price > 0, "Invalid price");
         
         // For "above" markets: YES wins if price > target, NO wins if price <= target
         // For "below" markets: YES wins if price < target, NO wins if price >= target
         if (market.isAbove) {
-            market.outcome = uint256(price) > market.targetPrice;
+            market.outcome = _price > market.targetPrice;
         } else {
-            market.outcome = uint256(price) < market.targetPrice;
+            market.outcome = _price < market.targetPrice;
         }
         
         market.resolved = true;
         
         emit MarketResolved(_marketId, market.outcome);
-    }
-    
-    function findClosestRound(AggregatorV3Interface priceFeed, uint256 deadline) internal view returns (
-        uint80 roundId, int256 price, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound
-    ) {
-        uint80 currentRoundId = 1;
-        try priceFeed.latestRoundData() returns (uint80 roundIdResult, int256, uint256, uint256, uint80) {
-            currentRoundId = roundIdResult;
-        } catch {
-            // If price feed fails, try to find any valid round
-            currentRoundId = 1000; // Start from a reasonable round ID
-        }
-        
-        uint256 bestRoundId = currentRoundId;
-        uint256 bestTimeDiff = type(uint256).max;
-        
-        // Search backwards from current round, but limit to avoid infinite loops
-        uint256 searchLimit = currentRoundId > 1000 ? currentRoundId - 1000 : 1;
-        
-        for (uint80 i = currentRoundId; i >= searchLimit; i--) {
-            try priceFeed.getRoundData(i) returns (uint80, int256, uint256, uint256, uint80) {
-                (,,,uint256 roundUpdatedAt,) = priceFeed.getRoundData(i);
-                if (roundUpdatedAt > 0) {
-                    uint256 timeDiff = abs(int256(roundUpdatedAt) - int256(deadline));
-                    if (timeDiff < bestTimeDiff) {
-                        bestTimeDiff = timeDiff;
-                        bestRoundId = i;
-                    }
-                    if (timeDiff <= 300) break; // Found a round within 5 minutes
-                }
-            } catch {
-                continue;
-            }
-        }
-        
-        // If we found a valid round, return it
-        if (bestTimeDiff != type(uint256).max) {
-            return priceFeed.getRoundData(uint80(bestRoundId));
-        }
-        
-        // Fallback: try to get the latest round data
-        try priceFeed.latestRoundData() returns (uint80, int256, uint256, uint256, uint80) {
-            return priceFeed.latestRoundData();
-        } catch {
-            revert("No valid price data available");
-        }
     }
     
     function abs(int256 x) internal pure returns (uint256) {

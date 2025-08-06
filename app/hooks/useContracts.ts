@@ -592,7 +592,7 @@ export function useResolveMarket() {
   const { predictionMarket } = getContractAddresses();
   const { toast } = useToast();
 
-  const resolveMarket = async (marketId: number) => {
+  const resolveMarket = async (marketId: number, deadline: Date, asset: string) => {
     try {
       const { ethers } = await import('ethers');
       const provider = new ethers.providers.Web3Provider((window.ethereum as any) || {});
@@ -604,12 +604,53 @@ export function useResolveMarket() {
       );
 
       toast({
-        title: 'Resolving Market...',
-        description: 'Please confirm the transaction in MetaMask',
+        title: 'Fetching Price Data...',
+        description: 'Getting historical price from Coinbase',
         status: 'info',
       });
 
-      const tx = await contract.resolveMarket(marketId);
+      // Convert deadline to UTC and format for Coinbase API
+      const deadlineUTC = new Date(deadline.getTime() - deadline.getTimezoneOffset() * 60000);
+      const startTime = deadlineUTC.toISOString();
+      const endTime = new Date(deadlineUTC.getTime() + 60000).toISOString(); // +60 seconds
+
+      // Map asset to Coinbase product
+      const assetMap: { [key: string]: string } = {
+        'BTC': 'BTC-USD',
+        'ETH': 'ETH-USD'
+      };
+      const product = assetMap[asset];
+      if (!product) {
+        throw new Error(`Unsupported asset: ${asset}`);
+      }
+
+      // Fetch price data from Coinbase API
+      const response = await fetch(
+        `https://api.exchange.coinbase.com/products/${product}/candles?start=${startTime}&end=${endTime}&granularity=60`
+      );
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch price data from Coinbase');
+      }
+
+      const candles = await response.json();
+      if (!candles || candles.length === 0) {
+        throw new Error('No price data available for the deadline');
+      }
+
+      // Extract price_open from the candle data [timestamp, low, high, open, close, volume]
+      const priceOpen = candles[0][1]; // price_open is at index 1
+      
+      // Convert price to 8 decimals (same format as target price)
+      const priceInDecimals = ethers.utils.parseUnits(priceOpen.toString(), 8);
+
+      toast({
+        title: 'Resolving Market...',
+        description: `Using price: $${priceOpen.toLocaleString()}`,
+        status: 'info',
+      });
+
+      const tx = await contract.resolveMarketWithPrice(marketId, priceInDecimals);
       
       toast({
         title: 'Transaction Submitted',
@@ -621,7 +662,7 @@ export function useResolveMarket() {
 
       toast({
         title: 'Market Resolved!',
-        description: 'The market has been successfully resolved',
+        description: `Market resolved with price: $${priceOpen.toLocaleString()}`,
         status: 'success',
       });
 

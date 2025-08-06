@@ -47,7 +47,7 @@ export function MarketCard({ market, onBet }: MarketCardProps) {
 
     setIsResolving(true);
     try {
-      const txHash = await resolveMarket(market.id);
+      const txHash = await resolveMarket(market.id, market.deadline, market.asset);
       setResolveTxHash(txHash);
       
       // Store that we should go to the resolved tab after reloading (client-side only)
