@@ -175,7 +175,13 @@ contract USDCPredictionMarket is
     function findClosestRound(AggregatorV3Interface priceFeed, uint256 deadline) internal view returns (
         uint80 roundId, int256 price, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound
     ) {
-        (uint80 currentRoundId,,,,) = priceFeed.latestRoundData();
+        uint80 currentRoundId = 1;
+        try priceFeed.latestRoundData() returns (uint80 roundId, int256, uint256, uint256, uint80) {
+            currentRoundId = roundId;
+        } catch {
+            // If price feed fails, use a default round ID
+            currentRoundId = 1;
+        }
         
         uint256 bestRoundId = currentRoundId;
         uint256 bestTimeDiff = type(uint256).max;
