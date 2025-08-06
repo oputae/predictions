@@ -637,4 +637,4 @@ MIT License - see LICENSE file
 
 ---
 
-Built with ❤️ for the Farcaster community
+Built with ❤️ for the Farcaster community# Updated contract address
