@@ -638,3 +638,4 @@ MIT License - see LICENSE file
 ---
 
 Built with ❤️ for the Farcaster community# Updated contract address
+# Trigger redeploy with fixed contract
