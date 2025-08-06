@@ -94,22 +94,9 @@ contract USDCPredictionMarket is
         newMarket.targetPrice = _targetPrice * 1e8; // Convert to 8 decimals for Chainlink
         newMarket.deadline = block.timestamp + _duration;
         
-        // Store the current round ID and estimate the round ID at deadline
-        AggregatorV3Interface priceFeed = AggregatorV3Interface(priceFeeds[_asset]);
-        
-        // Try to get current round ID, but don't fail if price feed is not available
-        uint80 currentRoundId = 0;
-        try priceFeed.latestRoundData() returns (uint80 roundIdResult, int256, uint256, uint256, uint80) {
-            currentRoundId = roundIdResult;
-        } catch {
-            // If price feed fails, use a default round ID
-            currentRoundId = 1;
-        }
-        
-        // Estimate round ID at deadline (assuming ~1 round per 15 seconds)
-        uint256 timeToDeadline = _duration;
-        uint256 estimatedRounds = timeToDeadline / 15; // Rough estimate
-        newMarket.deadlineRoundId = currentRoundId + uint80(estimatedRounds);
+        // Skip price feed call during market creation to avoid cross-chain issues
+        // We'll handle price feed calls only during market resolution
+        newMarket.deadlineRoundId = 1; // Default value, will be updated during resolution
         
         newMarket.creator = msg.sender;
         newMarket.minBet = _minBet;
