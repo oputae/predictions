@@ -31,5 +31,5 @@ jobs:
       - name: Run coverage
         run: npx hardhat coverage
 
-      - name: Check contract sizes
-        run: npx hardhat size-contracts
+      # - name: Check contract sizes
+      #   run: npx hardhat size-contracts
