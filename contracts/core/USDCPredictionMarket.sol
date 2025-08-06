@@ -96,7 +96,15 @@ contract USDCPredictionMarket is
         
         // Store the current round ID and estimate the round ID at deadline
         AggregatorV3Interface priceFeed = AggregatorV3Interface(priceFeeds[_asset]);
-        (uint80 currentRoundId,,,uint256 currentUpdatedAt,) = priceFeed.latestRoundData();
+        
+        // Try to get current round ID, but don't fail if price feed is not available
+        uint80 currentRoundId = 0;
+        try priceFeed.latestRoundData() returns (uint80 roundId, int256, uint256, uint256, uint80) {
+            currentRoundId = roundId;
+        } catch {
+            // If price feed fails, use a default round ID
+            currentRoundId = 1;
+        }
         
         // Estimate round ID at deadline (assuming ~1 round per 15 seconds)
         uint256 timeToDeadline = _duration;

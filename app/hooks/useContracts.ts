@@ -344,7 +344,7 @@ export function useCreateMarket() {
       
       const tx = await contract.createMarket(
         asset,
-        ethers.utils.parseUnits(targetPrice.toString(), 8), // 8 decimals for price
+        targetPrice, // Pass the raw price value
         duration,
         minBetInUSDC,
         isAbove

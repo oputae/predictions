@@ -4,7 +4,7 @@
   "deploymentDate": "2024-12-19T00:00:00.000Z",
   "deployer": "0xd60A61066a20E7E4b3E9EaF689509AdfA75Ef1dd",
   "contracts": {
-    "predictionMarket": "0x669174fC3ED415eF6aC095428cA96404007b68F0",
+    "predictionMarket": "0x7523E0adB28C63f511518df485838ff5b2F16a13",
     "usdc": "0x036CbD53842c5426634e7929541eC2318f3dCF7e"
   },
   "priceFeeds": {
