@@ -21,9 +21,7 @@ describe("USDCPredictionMarket", function () {
 
     // Deploy prediction market
     const PredictionMarket = await ethers.getContractFactory("USDCPredictionMarket");
-    market = await upgrades.deployProxy(PredictionMarket, [usdc.address], {
-      initializer: 'initialize'
-    });
+    market = await PredictionMarket.deploy(usdc.address);
 
     // Add price feeds
     await market.addPriceFeed("BTC", btcFeed.address);
@@ -44,7 +42,8 @@ describe("USDCPredictionMarket", function () {
         "BTC",
         130000,
         3600, // 1 hour
-        ethers.utils.parseUnits("10", 6)
+        ethers.utils.parseUnits("10", 6),
+        true // isAbove
       );
 
       const receipt = await tx.wait();
@@ -57,14 +56,14 @@ describe("USDCPredictionMarket", function () {
 
     it("Should reject unsupported assets", async function () {
       await expect(
-        market.createMarket("DOGE", 1, 3600, ethers.utils.parseUnits("10", 6))
+        market.createMarket("DOGE", 1, 3600, ethers.utils.parseUnits("10", 6), true)
       ).to.be.revertedWith("Asset not supported");
     });
   });
 
   describe("Betting", function () {
     beforeEach(async function () {
-      await market.createMarket("BTC", 130000, 3600, ethers.utils.parseUnits("10", 6));
+      await market.createMarket("BTC", 130000, 3600, ethers.utils.parseUnits("10", 6), true);
     });
 
     it("Should place a YES bet", async function () {
@@ -73,4 +72,16 @@ describe("USDCPredictionMarket", function () {
 
       const marketInfo = await market.getMarketInfo(0);
       expect(marketInfo.yesPool).to.equal(betAmount);
-      expect(marketInfo.
+      expect(marketInfo.noPool).to.equal(0);
+    });
+
+    it("Should place a NO bet", async function () {
+      const betAmount = ethers.utils.parseUnits("50", 6);
+      await market.connect(user2).placeBet(0, false, betAmount);
+
+      const marketInfo = await market.getMarketInfo(0);
+      expect(marketInfo.yesPool).to.equal(0);
+      expect(marketInfo.noPool).to.equal(betAmount);
+    });
+  });
+});
