@@ -22,7 +22,7 @@ export const CHAIN_CONFIG = {
 };
 
 export const CONTRACT_ADDRESSES = {
-  predictionMarket: process.env.NEXT_PUBLIC_PREDICTION_MARKET_ADDRESS || '0x213099536fA1f817eb389c814a9Be9f5D0B1034E',
+  predictionMarket: process.env.NEXT_PUBLIC_PREDICTION_MARKET_ADDRESS || '0x8ef5465c83199C314237Fc2e2e52cbdb0fF05c4c',
   usdc: process.env.NEXT_PUBLIC_USDC_ADDRESS || '',
 };
 

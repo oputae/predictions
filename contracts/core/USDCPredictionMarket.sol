@@ -99,8 +99,8 @@ contract USDCPredictionMarket is
         
         // Try to get current round ID, but don't fail if price feed is not available
         uint80 currentRoundId = 0;
-        try priceFeed.latestRoundData() returns (uint80 roundId, int256, uint256, uint256, uint80) {
-            currentRoundId = roundId;
+        try priceFeed.latestRoundData() returns (uint80 roundIdResult, int256, uint256, uint256, uint80) {
+            currentRoundId = roundIdResult;
         } catch {
             // If price feed fails, use a default round ID
             currentRoundId = 1;
@@ -176,8 +176,8 @@ contract USDCPredictionMarket is
         uint80 roundId, int256 price, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound
     ) {
         uint80 currentRoundId = 1;
-        try priceFeed.latestRoundData() returns (uint80 roundId, int256, uint256, uint256, uint80) {
-            currentRoundId = roundId;
+        try priceFeed.latestRoundData() returns (uint80 roundIdResult, int256, uint256, uint256, uint80) {
+            currentRoundId = roundIdResult;
         } catch {
             // If price feed fails, use a default round ID
             currentRoundId = 1;
