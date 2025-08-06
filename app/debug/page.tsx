@@ -1,5 +1,9 @@
-import DebugBalance from '../debug-balance';
+import DebugContractAddress from '../debug-contract-address';
 
 export default function DebugPage() {
-  return <DebugBalance />;
+  return (
+    <div>
+      <DebugContractAddress />
+    </div>
+  );
 } 
