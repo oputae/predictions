@@ -49,7 +49,7 @@ export async function GET(
       id: marketId,
       question: marketInfo[0],
       asset: marketInfo[1],
-      targetPrice: Number(marketInfo[2]),
+      targetPrice: Number(formatUnits(marketInfo[2], 8)),
       deadline: new Date(Number(marketInfo[3]) * 1000),
       yesPool: formatUnits(marketInfo[4], 6),
       noPool: formatUnits(marketInfo[5], 6),

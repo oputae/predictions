@@ -121,7 +121,7 @@ NEXT_PUBLIC_NETWORK=base-sepolia
 NEXT_PUBLIC_CHAIN_ID=84532
 
 # Contract Addresses (current deployment)
-NEXT_PUBLIC_PREDICTION_MARKET_ADDRESS=0x669174fC3ED415eF6aC095428cA96404007b68F0
+NEXT_PUBLIC_PREDICTION_MARKET_ADDRESS=0x93f0C0a18478Be1370224481155D21D974C95234
 NEXT_PUBLIC_USDC_ADDRESS=0x036CbD53842c5426634e7929541eC2318f3dCF7e
 
 # API Keys (required)
@@ -264,7 +264,7 @@ npm run dev
 
 ### Current Deployment Status
 
-**Active Contract**: `0x669174fC3ED415eF6aC095428cA96404007b68F0` (Base Sepolia)
+**Active Contract**: `0x93f0C0a18478Be1370224481155D21D974C95234` (Base Sepolia)
 
 **Key Features**:
 - ✅ **Deadline-based Resolution**: Markets resolve using Chainlink price at deadline (prevents manipulation)
@@ -276,6 +276,7 @@ npm run dev
 - ✅ **Smart Notifications**: Improved toast system with deduplication
 - ✅ **Smart USDC Approval**: Skips approval if user already has sufficient allowance
 - ✅ **Production Ready**: All components updated and tested
+- ✅ **Price Conversion Fixed**: Frontend correctly converts prices to/from 8 decimals for Chainlink compatibility
 
 **Price Feeds**:
 - **CBBTC/USD**: `0x07DA0E54543a844a80ABE69c8A12F22B3aA59f9D` (Base Mainnet)
