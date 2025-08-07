@@ -274,7 +274,7 @@ npm run dev
 - ✅ **Fee Withdrawal**: Admin can withdraw accumulated fees
 - ✅ **Forfeited Withdrawal**: Admin can withdraw forfeited amounts
 - ✅ **Smart Notifications**: Improved toast system with deduplication
-- ✅ **Smart USDC Approval**: Skips approval if user already has sufficient allowance
+- ✅ **Smart USDC Approval**: Real-time transaction status tracking with pending approval indicators
 - ✅ **Production Ready**: All components updated and tested
 - ✅ **Price Conversion Fixed**: Frontend correctly converts prices to/from 8 decimals for Chainlink compatibility
 - ✅ **Coinbase API Resolution**: Markets resolve using historical price data from Coinbase API for precise deadline-based pricing
@@ -461,8 +461,8 @@ npx hardhat test test/PredictionMarket.test.js
 
 - **`markets/BetModal.tsx`**
   - Betting interface
-  - Smart USDC approval flow
-  - Skips approval if already sufficient
+  - Smart USDC approval flow with transaction tracking
+  - Real-time approval status with pending indicators
 
 - **`markets/ResolvedMarketCard.tsx`**
   - Displays resolved markets
@@ -482,8 +482,8 @@ npx hardhat test test/PredictionMarket.test.js
 
 - **`useUSDC.ts`**
   - USDC-specific operations
-  - Balance, allowance, approval
-  - Smart approval skipping
+  - Balance, allowance, approval with transaction tracking
+  - Real-time approval status updates
 
 - **`usePlaceBet.ts`**
   - Bet placement logic
@@ -595,9 +595,10 @@ npx hardhat test test/PredictionMarket.test.js
 
 **"USDC transfer failed"**
 - Check USDC balance
-- Ensure approval is set (or check if smart approval is working)
+- Ensure approval transaction is confirmed (not just submitted)
 - Verify contract addresses match
 - Check if market is resolved and winnings are available
+- If approval shows "Pending...", wait for transaction confirmation
 
 **"Already claimed" error**
 - This is expected behavior - user has already claimed winnings
@@ -620,6 +621,12 @@ npx hardhat test test/PredictionMarket.test.js
 - Frontend now uses Base Mainnet price feeds via Alchemy
 - No more mock prices or fallback RPCs
 - Check Alchemy API key is valid
+
+**"Please approve USDC spending first" error despite showing approved**
+- This was a race condition issue that has been fixed
+- The UI now shows real-time transaction status
+- If you see "Pending..." status, wait for transaction confirmation
+- The approval step will automatically complete once the transaction is mined
 
 ## 🤝 Contributing
 

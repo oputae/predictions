@@ -45,6 +45,8 @@ export function useUSDC() {
   const { address } = useAccount();
   const { usdc } = getContractAddresses();
   const { toast } = useToast();
+  const [isApproving, setIsApproving] = useState(false);
+  const [pendingApprovalTx, setPendingApprovalTx] = useState<string | null>(null);
   
   // Get USDC balance
   const { data: balance, refetch: refetchBalance } = useContractRead({
@@ -72,6 +74,7 @@ export function useUSDC() {
       throw new Error('Please connect your wallet first');
     }
 
+    setIsApproving(true);
     try {
       const { ethers } = await import('ethers');
       const provider = new ethers.providers.Web3Provider(window.ethereum as any);
@@ -82,27 +85,47 @@ export function useUSDC() {
         signer
       );
 
+      toast({
+        title: 'Approving USDC...',
+        description: 'Please confirm the transaction in MetaMask',
+        status: 'info',
+      });
+
       const tx = await usdcContract.approve(
         getContractAddresses().predictionMarket,
         ethers.utils.parseUnits('1000000', 6)
       );
 
-      await tx.wait();
+      setPendingApprovalTx(tx.hash);
 
+      toast({
+        title: 'Transaction Submitted',
+        description: `Transaction hash: ${tx.hash}`,
+        status: 'info',
+      });
+
+      // Wait for confirmation
+      const receipt = await tx.wait();
+      
       toast({
         title: 'USDC Approved!',
         description: 'You can now place bets',
         status: 'success',
       });
 
-      refetchAllowance();
+      // Clear pending transaction and refresh allowance
+      setPendingApprovalTx(null);
+      await refetchAllowance();
     } catch (error: any) {
+      setPendingApprovalTx(null);
       toast({
         title: 'Approval Failed',
         description: error.message || 'Failed to approve USDC',
         status: 'error',
       });
       throw error;
+    } finally {
+      setIsApproving(false);
     }
   };
 
@@ -110,7 +133,8 @@ export function useUSDC() {
     balance: balance ? formatUnits(balance as bigint, 6) : '0',
     allowance: allowance ? formatUnits(allowance as bigint, 6) : '0',
     approve,
-    isApproving: false,
+    isApproving,
+    pendingApprovalTx,
     refetchBalance,
     refetchAllowance,
   };
@@ -404,7 +428,7 @@ export function usePlaceBet() {
       const allowanceInUSDC = ethers.utils.formatUnits(currentAllowance, 6);
       
       if (parseFloat(allowanceInUSDC) < parseFloat(amount)) {
-        throw new Error('Please approve USDC spending first');
+        throw new Error(`Insufficient USDC allowance. You have ${allowanceInUSDC} USDC approved, but need ${amount} USDC. Please approve more USDC spending.`);
       }
       
       // Create contract instance

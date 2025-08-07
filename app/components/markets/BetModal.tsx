@@ -18,45 +18,46 @@ export function BetModal({ market, side, onClose, onSuccess }: BetModalProps) {
   const [step, setStep] = useState<'approve' | 'bet'>('approve');
   const [isApproved, setIsApproved] = useState(false);
   const [betTxHash, setBetTxHash] = useState<string | null>(null);
-  const { balance, allowance, approve, isApproving, refetchAllowance } = useUSDC();
+  const { balance, allowance, approve, isApproving, pendingApprovalTx, refetchAllowance } = useUSDC();
   const { placeBet, isLoading: isBetting } = usePlaceBet();
 
   // Check initial allowance status when modal opens
   useEffect(() => {
     const checkInitialAllowance = async () => {
       await refetchAllowance();
-      // If user already has allowance, automatically move to bet step
-      if (parseFloat(allowance) > 0) {
+      // If user already has allowance and no pending approval, move to bet step
+      if (parseFloat(allowance) > 0 && !pendingApprovalTx) {
         setStep('bet');
         setIsApproved(true);
       }
     };
     checkInitialAllowance();
-  }, [refetchAllowance, allowance]);
+  }, [refetchAllowance, allowance, pendingApprovalTx]);
 
   // Check allowance on mount and when amount changes
   useEffect(() => {
     const checkAllowanceStatus = async () => {
       await refetchAllowance();
       const hasEnoughAllowance = parseFloat(allowance) >= parseFloat(amount || '0');
-      setIsApproved(hasEnoughAllowance);
+      const noPendingApproval = !pendingApprovalTx;
       
-      // If user has enough allowance, automatically move to bet step
-      if (hasEnoughAllowance && step === 'approve') {
+      setIsApproved(hasEnoughAllowance && noPendingApproval);
+      
+      // If user has enough allowance and no pending approval, automatically move to bet step
+      if (hasEnoughAllowance && noPendingApproval && step === 'approve') {
         setStep('bet');
       }
     };
     checkAllowanceStatus();
-  }, [refetchAllowance, allowance, amount, step]);
+  }, [refetchAllowance, allowance, amount, step, pendingApprovalTx]);
 
   const handleApprove = async () => {
     if (!amount || parseFloat(amount) <= 0) return;
 
     try {
       await approve();
-      await refetchAllowance();
-      setIsApproved(true);
-      setStep('bet');
+      // Note: We don't manually set step here anymore - it will be handled by the useEffect
+      // when the allowance is refreshed after transaction confirmation
     } catch (error) {
       console.error('Approval failed:', error);
     }
@@ -129,8 +130,14 @@ export function BetModal({ market, side, onClose, onSuccess }: BetModalProps) {
             </div>
             <div>
               <p className="text-gray-400">Approved</p>
-              <p className={`font-mono ${parseFloat(allowance) >= parseFloat(amount || '0') ? 'text-green-400' : 'text-yellow-400'}`}>
-                {allowance} USDC
+              <p className={`font-mono ${
+                pendingApprovalTx 
+                  ? 'text-blue-400' 
+                  : parseFloat(allowance) >= parseFloat(amount || '0') 
+                    ? 'text-green-400' 
+                    : 'text-yellow-400'
+              }`}>
+                {pendingApprovalTx ? 'Pending...' : `${allowance} USDC`}
               </p>
             </div>
           </div>
@@ -140,9 +147,13 @@ export function BetModal({ market, side, onClose, onSuccess }: BetModalProps) {
         <div className="flex items-center mb-6">
           <div className={`flex-1 h-1 ${step === 'approve' ? 'bg-purple-600' : 'bg-green-600'}`}></div>
           <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${
-            step === 'approve' ? 'bg-purple-600 text-white' : 'bg-green-600 text-white'
+            step === 'approve' 
+              ? pendingApprovalTx 
+                ? 'bg-blue-600 text-white' 
+                : 'bg-purple-600 text-white' 
+              : 'bg-green-600 text-white'
           }`}>
-            {step === 'approve' ? '1' : '✓'}
+            {step === 'approve' ? (pendingApprovalTx ? '⏳' : '1') : '✓'}
           </div>
           <div className={`flex-1 h-1 ${step === 'bet' ? 'bg-green-600' : 'bg-gray-600'}`}></div>
           <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${
@@ -171,6 +182,24 @@ export function BetModal({ market, side, onClose, onSuccess }: BetModalProps) {
         {/* Step 1: Approve */}
         {step === 'approve' && (
           <div>
+            {/* Show pending approval status */}
+            {pendingApprovalTx && (
+              <div className="mb-4 p-3 bg-blue-900/20 border border-blue-500/30 rounded-lg">
+                <p className="text-sm text-blue-400 mb-2">
+                  ⏳ Approval transaction pending...
+                </p>
+                <a
+                  href={`https://sepolia.basescan.org/tx/${pendingApprovalTx}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center text-xs text-blue-300 hover:text-blue-200 transition-colors"
+                >
+                  <ExternalLink className="w-3 h-3 mr-1" />
+                  View Transaction
+                </a>
+              </div>
+            )}
+            
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-300 mb-2">
                 Amount (Test USDC)
@@ -180,19 +209,25 @@ export function BetModal({ market, side, onClose, onSuccess }: BetModalProps) {
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 placeholder="Enter amount"
-                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-500"
+                disabled={pendingApprovalTx !== null}
+                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 disabled:opacity-50"
               />
             </div>
             
             <button
               onClick={handleApprove}
-              disabled={isApproving || !amount || parseFloat(amount) <= 0}
+              disabled={isApproving || !amount || parseFloat(amount) <= 0 || pendingApprovalTx !== null}
               className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-purple-800 py-2 rounded font-medium transition-colors flex items-center justify-center"
             >
               {isApproving ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                   Approving...
+                </>
+              ) : pendingApprovalTx ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Waiting for Confirmation...
                 </>
               ) : (
                 'Approve USDC'
@@ -204,11 +239,13 @@ export function BetModal({ market, side, onClose, onSuccess }: BetModalProps) {
         {/* Step 2: Place Bet */}
         {step === 'bet' && (
           <div>
-            <div className="mb-4 p-3 bg-green-900/20 border border-green-500/30 rounded-lg">
-              <p className="text-sm text-green-400">
-                ✓ USDC Approved - Ready to place bet
-              </p>
-            </div>
+            {!pendingApprovalTx && (
+              <div className="mb-4 p-3 bg-green-900/20 border border-green-500/30 rounded-lg">
+                <p className="text-sm text-green-400">
+                  ✓ USDC Approved - Ready to place bet
+                </p>
+              </div>
+            )}
             
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-300 mb-2">
@@ -225,7 +262,7 @@ export function BetModal({ market, side, onClose, onSuccess }: BetModalProps) {
             
             <button
               onClick={handleBet}
-              disabled={isBetting || !amount || parseFloat(amount) <= 0}
+              disabled={isBetting || !amount || parseFloat(amount) <= 0 || pendingApprovalTx !== null}
               className="w-full bg-green-600 hover:bg-green-700 disabled:bg-green-800 py-2 rounded font-medium transition-colors flex items-center justify-center"
             >
               {isBetting ? (
