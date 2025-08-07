@@ -47,6 +47,11 @@ export function BetModal({ market, side, onClose, onSuccess }: BetModalProps) {
       if (hasEnoughAllowance && noPendingApproval && step === 'approve') {
         setStep('bet');
       }
+      
+      // If user doesn't have enough allowance, move back to approve step
+      if (!hasEnoughAllowance && step === 'bet') {
+        setStep('approve');
+      }
     };
     checkAllowanceStatus();
   }, [refetchAllowance, allowance, amount, step, pendingApprovalTx]);
@@ -239,10 +244,18 @@ export function BetModal({ market, side, onClose, onSuccess }: BetModalProps) {
         {/* Step 2: Place Bet */}
         {step === 'bet' && (
           <div>
-            {!pendingApprovalTx && (
+            {!pendingApprovalTx && parseFloat(allowance) >= parseFloat(amount || '0') && (
               <div className="mb-4 p-3 bg-green-900/20 border border-green-500/30 rounded-lg">
                 <p className="text-sm text-green-400">
                   ✓ USDC Approved - Ready to place bet
+                </p>
+              </div>
+            )}
+            
+            {!pendingApprovalTx && parseFloat(allowance) < parseFloat(amount || '0') && (
+              <div className="mb-4 p-3 bg-yellow-900/20 border border-yellow-500/30 rounded-lg">
+                <p className="text-sm text-yellow-400">
+                  ⚠️ Insufficient USDC allowance. Please approve more USDC or reduce your bet amount.
                 </p>
               </div>
             )}
@@ -262,7 +275,7 @@ export function BetModal({ market, side, onClose, onSuccess }: BetModalProps) {
             
             <button
               onClick={handleBet}
-              disabled={isBetting || !amount || parseFloat(amount) <= 0 || pendingApprovalTx !== null}
+              disabled={isBetting || !amount || parseFloat(amount) <= 0 || pendingApprovalTx !== null || parseFloat(allowance) < parseFloat(amount || '0')}
               className="w-full bg-green-600 hover:bg-green-700 disabled:bg-green-800 py-2 rounded font-medium transition-colors flex items-center justify-center"
             >
               {isBetting ? (
